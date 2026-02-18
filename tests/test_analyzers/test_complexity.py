@@ -241,3 +241,31 @@ def test_recommendations():
     result = analyzer.analyze(pr_data)
 
     assert any("Deep nesting" in rec for rec in result.recommendations)
+
+
+def test_high_conditional_recommendation():
+    """Test recommendation triggers when conditionals >= 10."""
+    lines = "\n".join(f"+if cond{i}:" for i in range(12))
+    patch = f"@@ -1,3 +1,15 @@\n{lines}"
+    pr_data = PRData(
+        owner="test", repo="test-repo", number=9,
+        title="Many conditionals", author="developer",
+        files=[FileChange(filename="src/conds.py", additions=12, deletions=0, patch=patch)],
+    )
+    result = ComplexityAnalyzer().analyze(pr_data)
+    assert result.details["conditionals"] >= 10
+    assert any("High conditional complexity" in r for r in result.recommendations)
+
+
+def test_high_loop_recommendation():
+    """Test recommendation triggers when loops >= 5."""
+    lines = "\n".join(f"+for i{j} in range({j}):" for j in range(6))
+    patch = f"@@ -1,3 +1,8 @@\n{lines}"
+    pr_data = PRData(
+        owner="test", repo="test-repo", number=10,
+        title="Many loops", author="developer",
+        files=[FileChange(filename="src/loops2.py", additions=6, deletions=0, patch=patch)],
+    )
+    result = ComplexityAnalyzer().analyze(pr_data)
+    assert result.details["loops"] >= 5
+    assert any("Multiple loops" in r for r in result.recommendations)

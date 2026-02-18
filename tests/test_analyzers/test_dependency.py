@@ -119,3 +119,23 @@ def test_no_dependency_changes():
     assert result.score == 0  # No dependency files
     assert result.details["dep_file_count"] == 0
     assert result.details["dep_loc"] == 0
+
+
+def test_high_import_changes_recommendation():
+    """Test recommendation triggers when import_changes >= 5."""
+    patch = """@@ -1,3 +1,8 @@
++import os
++import sys
++import json
++from pathlib import Path
++from typing import Optional
+-import old_module
+"""
+    pr_data = PRData(
+        owner="test", repo="test-repo", number=6,
+        title="Many import changes", author="developer",
+        files=[FileChange(filename="src/refactored.py", additions=5, deletions=1, patch=patch)],
+    )
+    result = DependencyAnalyzer().analyze(pr_data)
+    assert result.details["import_changes"] >= 5
+    assert any("circular dependencies" in r for r in result.recommendations)

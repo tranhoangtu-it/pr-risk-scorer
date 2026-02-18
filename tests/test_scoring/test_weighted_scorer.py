@@ -105,3 +105,15 @@ def test_no_amplification_single_high(scorer):
     result = scorer.score(results)
     # Only 1 > 70, no amplification; base ~43.3
     assert 40.0 < result.overall_score < 50.0
+
+
+def test_no_matched_analyzers():
+    """Test scoring when results don't match any enabled analyzer."""
+    cfg = ScorerConfig(analyzers={
+        "blast_radius": AnalyzerConfig(weight=0.5),
+    })
+    scorer = WeightedScorer(cfg)
+    results = [_result("nonexistent_analyzer", 80)]
+    result = scorer.score(results)
+    assert result.overall_score == 0.0
+    assert result.risk_level == RiskLevel.LOW
