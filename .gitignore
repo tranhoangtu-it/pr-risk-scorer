@@ -41,3 +41,6 @@ env/
 
 # Project-specific user config (template is in repo)
 .pr-risk-scorer.yaml
+
+# Plans (local only)
+plans/
